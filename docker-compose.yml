@@ -1,0 +1,37 @@
+version: "3"
+services:
+  influxdb:
+    container_name: influxdb
+    image: "influxdb:latest"
+    restart: unless-stopped
+    ports:
+      - 8086:8086
+    volumes:
+      - ~/monitoring/influxdb/db:/var/lib/influxdb
+      - ~/monitoring/influxdb/config/influxdb.conf:/etc/influxdb/influxdb.conf
+  telegraf:
+    container_name: telegraf
+    image: "telegraf:latest"
+    restart: unless-stopped
+    environment:
+      - HOST_PROC=/backup-server/proc/
+    ports:
+      - 8125:8125 # StatsD
+      - 8092:8092 # UDP
+      - 8094:8094 # TCP
+    volumes:
+      - ~/monitoring/telegraf/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /proc:/backup-server/proc:ro
+      #- /var/run/docker.sock:/var/run/docker.sock
+    network_mode: "host"
+  grafana:
+    container_name: grafana
+    image: "grafana/grafana:latest"
+    restart: unless-stopped
+    user: "0"
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/monitoring/grafana/db:/var/lib/grafana
+      - ~/monitoring/grafana/config/grafana.ini:/etc/grafana/grafana.ini
+
